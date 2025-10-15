@@ -21,7 +21,7 @@ A complete Retrieval-Augmented Generation system using Groq's free AI API for do
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rag-groq-knowledge-base.git
+git clone https://github.com/Sangeethkumar0903/rag-groq-knowledge-base.git
 cd rag-groq-knowledge-base
 
 # Create virtual environment
@@ -35,3 +35,4 @@ source groq_rag_env/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
