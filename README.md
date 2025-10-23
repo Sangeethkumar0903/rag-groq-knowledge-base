@@ -1,78 +1,77 @@
-<<<<<<< HEAD
-# 🚀 RAG Knowledge Base with Groq AI
+Knowledge-Base Search Engine — RAG with Groq AI
+Short Description
 
-A complete Retrieval-Augmented Generation system using Groq's free AI API for document search and question answering.
+A complete Retrieval-Augmented Generation (RAG) system that ingests PDFs and text documents and provides AI-powered answers using semantic search and Groq's fast LLM inference.
 
-## ✨ Features
+Features
 
-- **📁 Document Upload**: Support for PDF and TXT files
-- **🔍 Semantic Search**: Keyword-based retrieval system
-- **🤖 AI Answers**: Groq AI integration (Llama 3.1 8B)
-- **🌐 Web Interface**: Streamlit frontend for easy interaction
-- **💰 Completely Free**: No API costs for basic usage
-- **⚡ Blazing Fast**: Groq's ultra-low latency responses
+PDF and text document processing
 
-## 🛠 Setup Instructions
+Semantic search with FAISS vector store
 
-### 1. Prerequisites
-- Python 3.8+
-- Groq API key (free from https://console.groq.com)
+Groq AI integration (Llama-3.1-8B)
 
-### 2. Installation
+Streamlit web interface
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/rag-groq-knowledge-base.git
-cd rag-groq-knowledge-base
+Fast, free LLM responses
 
-# Create virtual environment
-python -m venv groq_rag_env
+Local embedding generation
 
-# Activate environment
-# Windows:
-groq_rag_env\Scripts\activate
-# Mac/Linux:
-source groq_rag_env/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-=======
-# 🚀 RAG Knowledge Base with Groq AI
-
-A complete Retrieval-Augmented Generation system using Groq's free AI API for document search and question answering.
-
-## ✨ Features
-
-- **📁 Document Upload**: Support for PDF and TXT files
-- **🔍 Semantic Search**: Keyword-based retrieval system
-- **🤖 AI Answers**: Groq AI integration (Llama 3.1 8B)
-- **🌐 Web Interface**: Streamlit frontend for easy interaction
-- **💰 Completely Free**: No API costs for basic usage
-- **⚡ Blazing Fast**: Groq's ultra-low latency responses
-
-## 🛠 Setup Instructions
-
-### 1. Prerequisites
-- Python 3.8+
-- Groq API key (free from https://console.groq.com)
-
-### 2. Installation
-
-```bash
-# Clone the repository
+Getting Started
+1️⃣ Clone the repository
 git clone https://github.com/Sangeethkumar0903/rag-groq-knowledge-base.git
 cd rag-groq-knowledge-base
 
-# Create virtual environment
+2️⃣ Set up Python virtual environment
 python -m venv groq_rag_env
+groq_rag_env\Scripts\activate      # Windows
+# source groq_rag_env/bin/activate  # Linux/macOS
 
-# Activate environment
-# Windows:
-groq_rag_env\Scripts\activate
-# Mac/Linux:
-source groq_rag_env/bin/activate
-
-# Install dependencies
+3️⃣ Install dependencies
 pip install -r requirements.txt
 
->>>>>>> f200f2827b6797afa5996e79d2a6d797bd9acc99
+4️⃣ Configure environment variables
+
+Add your GROQ_API_KEY to a .env file in the project root.
+
+5️⃣ Run the backend
+cd backend
+python main.py
+
+6️⃣ Run the frontend (in a new terminal)
+cd frontend
+streamlit run app.py
+
+Usage
+
+Upload PDFs or text documents through the web interface.
+
+Ask questions about your documents.
+
+Get AI-generated answers with source citations.
+
+Architecture
+
+Document Processing: PyMuPDF for PDFs, text splitting into chunks
+
+Embeddings: Sentence-transformers for local embedding generation
+
+Vector Store: FAISS for efficient similarity search
+
+Retrieval: Semantic search with cosine similarity
+
+Synthesis: Groq AI with RAG prompt engineering
+
+API: FastAPI backend with REST endpoints
+
+Frontend: Streamlit user interface
+
+API Endpoints
+
+POST /upload – Upload and process documents
+
+POST /query – Query the knowledge base
+
+GET /health – System health check
+
+GET /stats – System statistics
