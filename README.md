@@ -28,6 +28,7 @@ groq_rag_env\Scripts\activate      # Windows
 # source groq_rag_env/bin/activate  # Linux/macOS
 
 3️⃣ Install dependencies
+cd backend
 pip install -r requirements.txt
 
 4️⃣ Configure environment variables
