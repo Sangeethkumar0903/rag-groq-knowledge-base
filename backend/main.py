@@ -97,28 +97,42 @@ ANSWER:"""
 llm_integration = SimpleGroqIntegration()
 
 def extract_text_from_file(file_path: str) -> str:
-    """Extract text from file"""
+    """Extract text from file with better error handling"""
     try:
         if file_path.endswith('.txt'):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                if content.strip():
+                    return content
+                else:
+                    return f"Empty text file: {os.path.basename(file_path)}"
+                    
         elif file_path.endswith('.pdf'):
-            # Simple PDF extraction (install pymupdf if needed: pip install pymupdf)
             try:
                 import fitz
                 doc = fitz.open(file_path)
                 text = ""
-                for page in doc:
-                    text += page.get_text()
+                for page_num, page in enumerate(doc):
+                    page_text = page.get_text()
+                    if page_text.strip():
+                        text += f"Page {page_num + 1}:\n{page_text}\n\n"
                 doc.close()
-                return text
+                
+                if text.strip():
+                    return text
+                else:
+                    return f"PDF file contains no extractable text: {os.path.basename(file_path)}"
+                    
             except ImportError:
                 return f"PDF file: {os.path.basename(file_path)} (install pymupdf for text extraction)"
+            except Exception as e:
+                return f"Error reading PDF {os.path.basename(file_path)}: {str(e)}"
+                
         else:
-            return f"Unsupported file: {os.path.basename(file_path)}"
+            return f"Unsupported file type: {os.path.basename(file_path)}"
+            
     except Exception as e:
-        return f"Error reading file: {str(e)}"
-
+        return f"Error reading file {os.path.basename(file_path)}: {str(e)}"
 def chunk_text(text: str, chunk_size: int = 500) -> List[str]:
     """Split text into chunks"""
     words = text.split()
@@ -140,21 +154,28 @@ def chunk_text(text: str, chunk_size: int = 500) -> List[str]:
     
     return chunks
 
-def simple_retrieve(query: str, chunks: List[str], k: int = 3) -> List[str]:
-    """Simple keyword-based retrieval"""
+def simple_retrieve(query: str, chunks: List[str], k: int = 3) -> List[tuple]:
+    """Simple keyword-based retrieval with proper scoring"""
     query_words = set(query.lower().split())
     scored_chunks = []
     
     for chunk in chunks:
         chunk_words = set(chunk.lower().split())
         common_words = query_words.intersection(chunk_words)
-        score = len(common_words)
+        
+        # Calculate similarity score (0 to 1)
+        if query_words:
+            score = len(common_words) / len(query_words)
+        else:
+            score = 0.1  # Default score for empty query
+        
+        # Ensure score is between 0 and 1
+        score = max(0.1, min(1.0, score))
         scored_chunks.append((chunk, score))
     
     # Sort by score and return top k
     scored_chunks.sort(key=lambda x: x[1], reverse=True)
-    return [chunk for chunk, score in scored_chunks[:k]]
-
+    return scored_chunks[:k]
 @app.get("/")
 async def root():
     return {"message": "🚀 RAG Knowledge Base with Groq AI is running!"}
@@ -208,7 +229,6 @@ async def upload_documents(files: List[UploadFile] = File(...)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
-
 @app.post("/query")
 async def query_knowledge_base(query: dict):
     """Query the knowledge base"""
@@ -220,10 +240,10 @@ async def query_knowledge_base(query: dict):
         if not user_query:
             raise HTTPException(status_code=400, detail="Question is required")
         
-        # Retrieve relevant chunks using simple keyword matching
-        relevant_chunks = simple_retrieve(user_query, documents_store, k=3)
+        # Retrieve relevant chunks with scores
+        relevant_chunks_with_scores = simple_retrieve(user_query, documents_store, k=3)
         
-        if not relevant_chunks:
+        if not relevant_chunks_with_scores:
             return {
                 "question": user_query,
                 "answer": "❌ No relevant information found in the uploaded documents.",
@@ -231,24 +251,25 @@ async def query_knowledge_base(query: dict):
             }
         
         # Generate answer
-        prompt = llm_integration.create_rag_prompt(relevant_chunks, user_query)
+        prompt = llm_integration.create_rag_prompt([chunk for chunk, score in relevant_chunks_with_scores], user_query)
         answer = llm_integration.generate_answer(prompt)
         
-        # Prepare sources
+        # Prepare sources with similarity scores
         sources = [
             {
                 "source_id": i+1,
                 "content": chunk[:500] + "..." if len(chunk) > 500 else chunk,
+                "similarity_score": f"{score:.3f}",
                 "content_length": len(chunk)
             } 
-            for i, chunk in enumerate(relevant_chunks)
+            for i, (chunk, score) in enumerate(relevant_chunks_with_scores)
         ]
         
         return {
             "question": user_query,
             "answer": answer,
             "sources": sources,
-            "retrieved_chunks": len(relevant_chunks)
+            "retrieved_chunks": len(relevant_chunks_with_scores)
         }
         
     except Exception as e:
